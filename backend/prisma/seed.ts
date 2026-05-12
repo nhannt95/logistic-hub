@@ -1,4 +1,5 @@
-import { PrismaClient } from '@prisma/client'
+import 'dotenv/config'
+import { PrismaClient, UserRole } from '@prisma/client'
 import * as bcrypt from 'bcrypt'
 
 const prisma = new PrismaClient()
@@ -29,11 +30,12 @@ const PERMISSIONS: Array<{ key: string; group: string; label: string }> = [
   { key: 'user.role',       group: 'Hệ thống',  label: 'Cấu hình phân quyền' },
 ]
 
-const ROLE_MATRIX: Record<string, string[]> = {
-  'Điều Độ': ['plan.view', 'plan.create', 'plan.assign', 'cont.view', 'cont.update', 'cont.cost', 'driver.work', 'dashboard.view'],
-  'Tài Xế':  ['driver.work', 'driver.update', 'driver.upload', 'cont.view'],
-  'Kế Toán': ['plan.view', 'cont.view', 'cont.cost', 'fin.view', 'fin.edit', 'fin.export', 'dashboard.view', 'report.detail', 'report.export'],
-  'Giám Đốc': PERMISSIONS.map((p) => p.key),
+// Note: Prisma enum uses TS-side identifiers (DieuDo, TaiXe...), not DB-mapped values
+const ROLE_MATRIX: Record<UserRole, string[]> = {
+  [UserRole.DieuDo]:  ['plan.view', 'plan.create', 'plan.assign', 'cont.view', 'cont.update', 'cont.cost', 'driver.work', 'dashboard.view'],
+  [UserRole.TaiXe]:   ['driver.work', 'driver.update', 'driver.upload', 'cont.view'],
+  [UserRole.KeToan]:  ['plan.view', 'cont.view', 'cont.cost', 'fin.view', 'fin.edit', 'fin.export', 'dashboard.view', 'report.detail', 'report.export'],
+  [UserRole.GiamDoc]: PERMISSIONS.map((p) => p.key),
 }
 
 const SHIPPING_LINES = [
@@ -72,12 +74,12 @@ async function main() {
   console.log(`  ✓ ${PERMISSIONS.length} permissions`)
 
   // 2) Role × Permission matrix
-  for (const [role, keys] of Object.entries(ROLE_MATRIX)) {
-    for (const key of keys) {
+  for (const role of Object.keys(ROLE_MATRIX) as UserRole[]) {
+    for (const key of ROLE_MATRIX[role]) {
       await prisma.rolePermission.upsert({
-        where: { role_permissionKey: { role: role as any, permissionKey: key } },
+        where: { role_permissionKey: { role, permissionKey: key } },
         update: { granted: true },
-        create: { role: role as any, permissionKey: key, granted: true },
+        create: { role, permissionKey: key, granted: true },
       })
     }
   }
@@ -117,7 +119,7 @@ async function main() {
       email: 'khaihoang@logistics-hub.vn',
       phone: '0903 456 789',
       passwordHash: hash,
-      role: 'GiamDoc',
+      role: UserRole.GiamDoc,
       status: 'active',
     },
   })
