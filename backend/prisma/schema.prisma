@@ -1,0 +1,384 @@
+// =============================================================================
+// Logistics-Hub — Prisma schema (mirrors database/schema.sql)
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// -------------------------- Enums --------------------------
+enum UserRole {
+  DieuDo  @map("Điều Độ")
+  TaiXe   @map("Tài Xế")
+  KeToan  @map("Kế Toán")
+  GiamDoc @map("Giám Đốc")
+}
+
+enum UserStatus {
+  active
+  locked
+}
+
+enum EntityStatus {
+  active
+  inactive
+}
+
+enum VendorType {
+  port
+  depot
+  shipping
+  fuel
+  maintenance
+  partner
+}
+
+enum VehicleCapacity {
+  TWENTY @map("20")
+  FORTY  @map("40")
+  MIXED  @map("mixed")
+}
+
+enum VehicleStatus {
+  active
+  inactive
+  maintenance
+}
+
+enum LicenseClass {
+  B2
+  C
+  D
+  E
+  FC
+}
+
+enum ContType {
+  TWENTY @map("20")
+  FORTY  @map("40")
+}
+
+enum TinhTrang {
+  XUAT       @map("XUẤT")
+  NHAP       @map("NHẬP")
+  CHUYEN_TAI @map("Chuyển tải")
+}
+
+enum DriverStatus {
+  new
+  confirmed
+  picking
+  picked
+  delivering
+  delivered
+  done
+}
+
+enum PaymentStatus {
+  unpaid
+  partial
+  paid
+}
+
+enum EvaluationKind {
+  photo
+  invoice
+}
+
+// -------------------------- Models --------------------------
+model User {
+  id           BigInt     @id @default(autoincrement()) @db.UnsignedBigInt
+  username     String     @unique @db.VarChar(64)
+  name         String     @db.VarChar(128)
+  email        String?    @db.VarChar(128)
+  phone        String?    @db.VarChar(32)
+  passwordHash String     @map("password_hash") @db.VarChar(255)
+  role         UserRole
+  status       UserStatus @default(active)
+  lastLoginAt  DateTime?  @map("last_login_at")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  drivers     Driver[]
+  createdPlans Plan[]    @relation("PlanCreatedBy")
+
+  @@index([role])
+  @@index([status])
+  @@map("users")
+}
+
+model Customer {
+  code          String       @id @db.VarChar(8)
+  name          String       @db.VarChar(255)
+  shortName     String       @map("short_name") @db.VarChar(64)
+  address       String?      @db.VarChar(255)
+  taxCode       String?      @map("tax_code") @db.VarChar(32)
+  contactPerson String?      @map("contact_person") @db.VarChar(128)
+  phone         String?      @db.VarChar(32)
+  email         String?      @db.VarChar(128)
+  status        EntityStatus @default(active)
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+
+  plans Plan[]
+
+  @@index([status])
+  @@index([shortName])
+  @@map("customers")
+}
+
+model ShippingLine {
+  code      String       @id @db.VarChar(16)
+  name      String       @db.VarChar(128)
+  status    EntityStatus @default(active)
+  createdAt DateTime     @default(now()) @map("created_at")
+
+  plans Plan[]
+
+  @@map("shipping_lines")
+}
+
+model Vendor {
+  code          String       @id @db.VarChar(16)
+  name          String       @db.VarChar(255)
+  type          VendorType
+  contactPerson String?      @map("contact_person") @db.VarChar(128)
+  phone         String?      @db.VarChar(32)
+  email         String?      @db.VarChar(128)
+  address       String?      @db.VarChar(255)
+  taxCode       String?      @map("tax_code") @db.VarChar(32)
+  status        EntityStatus @default(active)
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+
+  @@index([type])
+  @@index([status])
+  @@map("vendors")
+}
+
+model Route {
+  code           String       @id @db.VarChar(16)
+  fromLocation   String       @map("from_location") @db.VarChar(128)
+  toLocation     String       @map("to_location") @db.VarChar(128)
+  distance       Decimal      @default(0) @db.Decimal(8, 2)
+  estimatedHours Decimal      @default(0) @map("estimated_hours") @db.Decimal(5, 2)
+  standardPrice  Decimal      @default(0) @map("standard_price") @db.Decimal(15, 2)
+  note           String?      @db.Text
+  status         EntityStatus @default(active)
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  plans Plan[]
+
+  @@index([fromLocation, toLocation])
+  @@index([status])
+  @@map("routes")
+}
+
+model Vehicle {
+  code                String          @id @db.VarChar(16)
+  plateNumber         String          @unique @map("plate_number") @db.VarChar(32)
+  manufacturer        String?         @db.VarChar(64)
+  model               String?         @db.VarChar(64)
+  year                Int?            @db.SmallInt
+  capacity            VehicleCapacity @default(MIXED)
+  mooc                String?         @db.VarChar(32)
+  assignedDriverCode  String?         @map("assigned_driver_code") @db.VarChar(16)
+  insuranceExpiry     DateTime?       @map("insurance_expiry") @db.Date
+  registrationExpiry  DateTime?       @map("registration_expiry") @db.Date
+  status              VehicleStatus   @default(active)
+  registeredAt        DateTime?       @map("registered_at") @db.Date
+  createdAt           DateTime        @default(now()) @map("created_at")
+  updatedAt           DateTime        @updatedAt @map("updated_at")
+
+  plans Plan[]
+
+  @@index([status])
+  @@index([assignedDriverCode])
+  @@map("vehicles")
+}
+
+model Driver {
+  code                 String       @id @db.VarChar(16)
+  userId               BigInt?      @map("user_id") @db.UnsignedBigInt
+  name                 String       @db.VarChar(128)
+  phone                String?      @db.VarChar(32)
+  cccd                 String?      @db.VarChar(20)
+  license              String?      @db.VarChar(32)
+  licenseClass         LicenseClass @default(FC) @map("license_class")
+  licenseExpiry        DateTime?    @map("license_expiry") @db.Date
+  address              String?      @db.VarChar(255)
+  assignedVehicleCode  String?      @map("assigned_vehicle_code") @db.VarChar(16)
+  status               EntityStatus @default(active)
+  hiredAt              DateTime?    @map("hired_at") @db.Date
+  createdAt            DateTime     @default(now()) @map("created_at")
+  updatedAt            DateTime     @updatedAt @map("updated_at")
+
+  user  User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+  plans Plan[]
+
+  @@index([status])
+  @@index([assignedVehicleCode])
+  @@map("drivers")
+}
+
+model Permission {
+  key         String   @id @db.VarChar(64)
+  groupName   String   @map("group_name") @db.VarChar(64)
+  label       String   @db.VarChar(128)
+  description String?  @db.VarChar(255)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  roles RolePermission[]
+
+  @@index([groupName])
+  @@map("permissions")
+}
+
+model RolePermission {
+  role          UserRole
+  permissionKey String   @map("permission_key") @db.VarChar(64)
+  granted       Boolean  @default(true)
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  permission Permission @relation(fields: [permissionKey], references: [key], onDelete: Cascade)
+
+  @@id([role, permissionKey])
+  @@index([permissionKey])
+  @@map("role_permissions")
+}
+
+model Plan {
+  id                BigInt     @id @default(autoincrement()) @db.UnsignedBigInt
+
+  // Thông tin lệnh
+  ngayDongHang      DateTime   @map("ngay_dong_hang") @db.Date
+  customerCode      String?    @map("customer_code") @db.VarChar(8)
+  tuyenVanChuyen    String?    @map("tuyen_van_chuyen") @db.VarChar(255)
+  routeCode         String?    @map("route_code") @db.VarChar(16)
+  hopDong           String?    @map("hop_dong") @db.VarChar(64)
+  shippingLineCode  String?    @map("shipping_line_code") @db.VarChar(16)
+  bookingBl         String?    @map("booking_bl") @db.VarChar(64)
+  tinhTrang         TinhTrang  @map("tinh_trang")
+  cont20            Int        @default(0) @map("cont_20")
+  cont40            Int        @default(0) @map("cont_40")
+  tan               Decimal?   @db.Decimal(10, 2)
+  packing           String?    @db.VarChar(64)
+  etdEta            DateTime?  @map("etd_eta") @db.Date
+  cutOff            DateTime?  @map("cut_off")
+
+  // Vận hành cont
+  layContRong       String?    @map("lay_cont_rong") @db.VarChar(255)
+  haFull            String?    @map("ha_full") @db.VarChar(255)
+  cuoc              String?    @db.VarChar(255)
+  doiLenh           String?    @map("doi_lenh") @db.VarChar(255)
+  layHaCont         String?    @map("lay_ha_cont") @db.VarChar(255)
+  ghiChu            String?    @map("ghi_chu") @db.Text
+  neo               String?    @db.VarChar(64)
+
+  // Phân công
+  driverCode          String?       @map("driver_code") @db.VarChar(16)
+  vehicleCode         String?       @map("vehicle_code") @db.VarChar(16)
+  dauKeo              String?       @map("dau_keo") @db.VarChar(32)
+  mooc                String?       @db.VarChar(32)
+  estimateCompletion  DateTime?     @map("estimate_completion")
+  chiPhiTaiXe         Decimal?      @default(0) @map("chi_phi_tai_xe") @db.Decimal(15, 2)
+  remark              String?       @db.Text
+  driverStatus        DriverStatus? @default(new) @map("driver_status")
+
+  // Cược cont nhập
+  cuocSoTien        Decimal?  @map("cuoc_so_tien") @db.Decimal(15, 2)
+  cuocNgayCuoc      DateTime? @map("cuoc_ngay_cuoc") @db.Date
+  cuocNgayThu       DateTime? @map("cuoc_ngay_thu") @db.Date
+  cuocSoDinhDanh    String?   @map("cuoc_so_dinh_danh") @db.VarChar(64)
+  cuocMa            String?   @map("cuoc_ma") @db.VarChar(64)
+  cuocNguoiTao      String?   @map("cuoc_nguoi_tao") @db.VarChar(128)
+  cuocNgayInHd      DateTime? @map("cuoc_ngay_in_hd") @db.Date
+
+  // Khai Eport
+  eportSoTien       Decimal?  @map("eport_so_tien") @db.Decimal(15, 2)
+  eportNgayInHd     DateTime? @map("eport_ngay_in_hd") @db.Date
+  eportSoHd         String?   @map("eport_so_hd") @db.VarChar(64)
+  eportNgayDong     DateTime? @map("eport_ngay_dong") @db.Date
+
+  // Công nợ
+  congNoVc          Decimal?  @map("cong_no_vc") @db.Decimal(15, 2)
+  congNoTtVc        String?   @map("cong_no_tt_vc") @db.VarChar(64)
+  congNoChiHo       Decimal?  @map("cong_no_chi_ho") @db.Decimal(15, 2)
+  congNoTtChiHo     String?   @map("cong_no_tt_chi_ho") @db.VarChar(64)
+
+  // Trọng lượng
+  trongLuongNw      Decimal?  @map("trong_luong_nw") @db.Decimal(10, 2)
+  trongLuongGw      Decimal?  @map("trong_luong_gw") @db.Decimal(10, 2)
+  trongLuongNw2     Decimal?  @map("trong_luong_nw2") @db.Decimal(10, 2)
+  trongLuongGw2     Decimal?  @map("trong_luong_gw2") @db.Decimal(10, 2)
+
+  // Tài chính
+  doanhThu          Decimal?       @default(0) @map("doanh_thu") @db.Decimal(15, 2)
+  chiPhiKhac        Decimal?       @default(0) @map("chi_phi_khac") @db.Decimal(15, 2)
+  thanhToan         PaymentStatus? @default(unpaid) @map("thanh_toan")
+
+  // Audit
+  createdBy BigInt?  @map("created_by") @db.UnsignedBigInt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  customer     Customer?     @relation(fields: [customerCode], references: [code], onDelete: SetNull)
+  shippingLine ShippingLine? @relation(fields: [shippingLineCode], references: [code], onDelete: SetNull)
+  route        Route?        @relation(fields: [routeCode], references: [code], onDelete: SetNull)
+  driver       Driver?       @relation(fields: [driverCode], references: [code], onDelete: SetNull)
+  vehicle      Vehicle?      @relation(fields: [vehicleCode], references: [code], onDelete: SetNull)
+  creator      User?         @relation("PlanCreatedBy", fields: [createdBy], references: [id], onDelete: SetNull)
+
+  containers  PlanContainer[]
+  evaluations PlanEvaluation[]
+
+  @@index([ngayDongHang])
+  @@index([customerCode])
+  @@index([shippingLineCode])
+  @@index([routeCode])
+  @@index([driverCode])
+  @@index([vehicleCode])
+  @@index([tinhTrang])
+  @@index([driverStatus])
+  @@index([thanhToan])
+  @@index([bookingBl])
+  @@map("plans")
+}
+
+model PlanContainer {
+  id        BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  planId    BigInt   @map("plan_id") @db.UnsignedBigInt
+  soCont    String   @map("so_cont") @db.VarChar(32)
+  seal      String?  @db.VarChar(32)
+  type      ContType
+  createdAt DateTime @default(now()) @map("created_at")
+
+  plan Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@index([planId])
+  @@index([soCont])
+  @@map("plan_containers")
+}
+
+model PlanEvaluation {
+  id         BigInt         @id @default(autoincrement()) @db.UnsignedBigInt
+  planId     BigInt         @map("plan_id") @db.UnsignedBigInt
+  kind       EvaluationKind
+  caption    String?        @db.VarChar(255)
+  url        String         @db.VarChar(500)
+  uploadedBy String?        @map("uploaded_by") @db.VarChar(128)
+  uploadedAt DateTime       @default(now()) @map("uploaded_at")
+  createdAt  DateTime       @default(now()) @map("created_at")
+
+  plan Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@index([planId])
+  @@index([kind])
+  @@map("plan_evaluations")
+}
