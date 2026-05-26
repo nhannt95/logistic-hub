@@ -8,7 +8,11 @@ import DieuDoFilters, { type DieuDoFilterState } from '@/components/dieu-do/Dieu
 import DieuDoTable, { type SortKey, type SortDir } from '@/components/dieu-do/DieuDoTable.vue'
 import PlanFormDialog from '@/components/dieu-do/PlanFormDialog.vue'
 import EvaluationDialog from '@/components/dieu-do/EvaluationDialog.vue'
+import { toast } from '@/components/ui/sonner'
+import { useLoading } from '@/lib/loading'
 import { mockDieuDoRows, type DieuDoRow } from '@/data/mockDieuDo'
+
+const { start: startLoading, stop: stopLoading } = useLoading()
 
 const filters = ref<DieuDoFilterState>({
   dateFrom: '',
@@ -102,6 +106,17 @@ const evalRow = ref<DieuDoRow | null>(null)
 function openEvaluation(row: DieuDoRow) {
   evalRow.value = row
   evalOpen.value = true
+}
+
+async function onRefresh() {
+  startLoading()
+  try {
+    // Mock async fetch (BE sẽ thay bằng API call thật)
+    await new Promise((r) => setTimeout(r, 700))
+    toast.success('Đã làm mới dữ liệu', { description: `${mockDieuDoRows.length} lệnh được tải lại` })
+  } finally {
+    stopLoading()
+  }
 }
 
 const stats = computed(() => {
@@ -223,7 +238,7 @@ const stats = computed(() => {
     </div>
 
     <!-- Compact filter bar -->
-    <DieuDoFilters v-model="filters" :total-count="mockDieuDoRows.length" :filtered-count="filteredRows.length" />
+    <DieuDoFilters v-model="filters" :total-count="mockDieuDoRows.length" :filtered-count="filteredRows.length" @refresh="onRefresh" />
 
     <!-- Grid + pagination -->
     <div class="rounded-lg border bg-card overflow-hidden">

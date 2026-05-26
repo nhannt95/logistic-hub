@@ -1,0 +1,15 @@
+sudo nano /etc/nginx/sites-available/default  -> root /var/www/logistic;
+
+
+
+# Giao quyền cho nhóm www-data (nhóm mà cả deployer và nginx đều tham gia)
+sudo chown -R deployer:www-data /var/www/logistic
+
+# Cấp quyền đọc và thực thi cho thư mục
+sudo chmod -R 775 /var/www/logistic
+
+# Kiểm tra cú pháp xem có gõ nhầm dấu ; nào không
+sudo nginx -t
+
+# Nếu ok thì restart
+sudo systemctl restart nginx

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { Lock, User, Loader2, Truck, Container, Anchor, ShieldCheck, ArrowRight } from 'lucide-vue-next'
+import { Lock, User, Loader2, Truck, Container, Anchor, ShieldCheck, ArrowRight, Home } from 'lucide-vue-next'
 import { toast } from '@/components/ui/sonner'
 import { useAuthStore } from '@/stores/auth'
 import { Button } from '@/components/ui/button'
@@ -35,7 +35,7 @@ async function onSubmit(e: Event) {
     toast.success('Đăng nhập thành công', {
       description: `Chào mừng quay lại, ${username.value.trim()}!`,
     })
-    const redirect = (route.query.redirect as string) || '/dashboard'
+    const redirect = (route.query.redirect as string) || '/app/dashboard'
     router.replace(redirect)
   } finally {
     submitting.value = false
@@ -75,18 +75,31 @@ async function onSubmit(e: Event) {
     </div>
 
     <!-- Top bar brand mark -->
-    <div class="absolute top-6 left-6 flex items-center gap-3 z-10 kh-anim-fade-up">
+    <button
+      type="button"
+      class="absolute top-6 left-6 flex items-center gap-3 z-10 kh-anim-fade-up cursor-pointer"
+      @click="router.push('/')"
+    >
       <div class="relative">
         <div class="absolute inset-0 rounded-full bg-amber-400/30 blur-xl kh-anim-pulse-glow" />
-        <div class="relative h-10 w-10 rounded-lg bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 flex items-center justify-center shadow-lg shadow-amber-500/30">
-          <span class="text-[#0a1635] font-black text-base tracking-tight">KH</span>
+        <div class="relative h-11 w-11 rounded-lg bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 flex items-center justify-center shadow-lg shadow-amber-500/30">
+          <span class="text-[#0a1635] font-black text-lg tracking-tight">HK</span>
         </div>
       </div>
-      <div class="text-white">
-        <div class="text-sm font-bold tracking-wide leading-tight">KHẢI HOÀNG</div>
-        <div class="text-[10px] text-amber-200/70 leading-tight uppercase tracking-[0.2em]">Logistics</div>
+      <div class="text-white text-left">
+        <div class="text-base font-bold tracking-wide leading-tight">HOANGKHANG</div>
+        <div class="text-[11px] text-amber-200/70 leading-tight uppercase tracking-[0.2em]">Logistics</div>
       </div>
-    </div>
+    </button>
+
+    <Button
+      variant="outline"
+      size="sm"
+      class="absolute top-6 right-6 z-10 h-10 px-4 bg-white/10 hover:bg-white/20 text-white border-white/30 backdrop-blur-sm kh-anim-fade-up"
+      @click="router.push('/')"
+    >
+      <Home class="h-4 w-4" /> Trang chủ
+    </Button>
 
     <!-- Main content split -->
     <div class="relative z-10 w-full max-w-5xl grid lg:grid-cols-2 gap-8 items-center">
@@ -98,8 +111,8 @@ async function onSubmit(e: Event) {
             Hệ thống quản trị nội bộ
           </div>
           <h1 class="text-5xl xl:text-6xl font-black leading-[1.05] tracking-tight">
-            <span class="block text-white">KHẢI</span>
-            <span class="block kh-gold-text kh-anim-shine">HOÀNG</span>
+            <span class="block text-white">HOANG</span>
+            <span class="block kh-gold-text kh-anim-shine">KHANG</span>
           </h1>
           <div class="text-xl font-semibold text-blue-100/90 mt-3">LOGISTICS HUB</div>
         </div>
@@ -130,7 +143,7 @@ async function onSubmit(e: Event) {
         <div class="flex items-center gap-4 pt-6 text-blue-200/40 text-xs kh-anim-fade-up kh-delay-5">
           <span class="font-mono">v1.0.0</span>
           <span>·</span>
-          <span>© 2026 Khải Hoàng Logistics JSC</span>
+          <span>© 2026 HoangKhang Logistics JSC</span>
         </div>
       </div>
 
@@ -152,7 +165,7 @@ async function onSubmit(e: Event) {
                   <span class="text-xs font-semibold uppercase tracking-widest text-amber-700">Đăng nhập</span>
                 </div>
                 <h2 class="text-2xl font-bold tracking-tight text-slate-900">Chào mừng trở lại</h2>
-                <p class="text-sm text-slate-500 mt-1">Hệ thống logistic Khải Hoàng</p>
+                <p class="text-sm text-slate-500 mt-1">Hệ thống logistic HoangKhang</p>
               </div>
 
               <form @submit="onSubmit" class="space-y-4">
@@ -221,7 +234,7 @@ async function onSubmit(e: Event) {
             <div class="px-8 py-3 bg-slate-50 border-t border-slate-100 text-[11px] text-slate-500 text-center">
               Bằng việc đăng nhập, bạn đồng ý với
               <a href="#" class="text-amber-700 hover:underline font-medium">Điều khoản sử dụng</a>
-              của Khải Hoàng Logistics.
+              của HoangKhang Logistics.
             </div>
           </div>
         </div>

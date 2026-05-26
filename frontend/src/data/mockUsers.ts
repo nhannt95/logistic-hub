@@ -18,9 +18,9 @@ export const ROLE_LIST: UserRole[] = ['Điều Độ', 'Tài Xế', 'Kế Toán'
 export const mockUsers: AppUser[] = [
   {
     id: '1',
-    name: 'Khải Hoàng',
-    username: 'khaihoang',
-    email: 'khaihoang@logistics-hub.vn',
+    name: 'Hoàng Khang',
+    username: 'hoangkhang',
+    email: 'hoangkhang@logistics-hub.vn',
     phone: '0903 456 789',
     role: 'Giám Đốc',
     status: 'active',

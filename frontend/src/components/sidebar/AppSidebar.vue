@@ -11,11 +11,11 @@ const emit = defineEmits<{ (e: 'toggle'): void }>()
 const route = useRoute()
 
 const nav = [
-  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/dieu-do', label: 'Điều Độ', icon: ClipboardList },
-  { to: '/tai-xe', label: 'Tài Xế', icon: Truck },
-  { to: '/ke-toan', label: 'Kế Toán', icon: Wallet },
-  { to: '/settings', label: 'Setting', icon: SettingsIcon },
+  { to: '/app/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/app/dieu-do', label: 'Điều Độ', icon: ClipboardList },
+  { to: '/app/tai-xe', label: 'Tài Xế', icon: Truck },
+  { to: '/app/ke-toan', label: 'Kế Toán', icon: Wallet },
+  { to: '/app/settings', label: 'Setting', icon: SettingsIcon },
 ] as const
 
 const widthClass = computed(() => (props.collapsed ? 'w-16' : 'w-60'))
@@ -26,11 +26,11 @@ const widthClass = computed(() => (props.collapsed ? 'w-16' : 'w-60'))
     :class="cn('shrink-0 border-r bg-card transition-[width] duration-200 flex flex-col', widthClass)"
   >
     <div class="h-16 flex items-center gap-3 px-4 border-b">
-      <div class="h-9 w-9 rounded-lg bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 flex items-center justify-center shrink-0 shadow-sm shadow-amber-500/30">
-        <span class="text-[#0a1635] font-black text-[13px] tracking-tight">KH</span>
+      <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 flex items-center justify-center shrink-0 shadow-sm shadow-amber-500/30">
+        <span class="text-[#0a1635] font-black text-sm tracking-tight">HK</span>
       </div>
       <div v-if="!collapsed" class="overflow-hidden">
-        <div class="font-bold text-sm leading-tight truncate">Khải Hoàng</div>
+        <div class="font-bold text-base leading-tight truncate">HoangKhang</div>
         <div class="text-[11px] text-muted-foreground leading-tight truncate uppercase tracking-widest">Logistics</div>
       </div>
     </div>

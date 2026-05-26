@@ -260,7 +260,7 @@ function initials(name: string): string {
               {{ greeting }}, {{ auth.user?.name ?? 'bạn' }} 👋
             </h2>
             <p class="text-xs sm:text-sm text-white/70 max-w-xl">
-              Tổng quan hoạt động {{ periodFactor.sub }} của Khải Hoàng Logistics.
+              Tổng quan hoạt động {{ periodFactor.sub }} của HoangKhang Logistics.
             </p>
           </div>
 

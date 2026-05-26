@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { RouterView, useRoute, useRouter } from 'vue-router'
-import { Bell, LogOut, Search, Settings, User, Menu } from 'lucide-vue-next'
+import { Bell, LogOut, Search, Settings, User, Menu, Home } from 'lucide-vue-next'
 import AppSidebar from '@/components/sidebar/AppSidebar.vue'
 import { useAuthStore } from '@/stores/auth'
 import { toast } from '@/components/ui/sonner'
@@ -94,6 +94,18 @@ function onLogout() {
         </div>
 
         <div class="ml-auto lg:ml-0 flex items-center gap-1 sm:gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            class="h-9 hidden sm:inline-flex gap-1.5"
+            title="Về trang chủ"
+            @click="router.push('/')"
+          >
+            <Home class="h-4 w-4" /> <span class="hidden md:inline">Trang chủ</span>
+          </Button>
+          <Button variant="ghost" size="icon" class="h-9 w-9 sm:hidden" title="Về trang chủ" @click="router.push('/')">
+            <Home class="h-4 w-4" />
+          </Button>
           <ThemeToggle />
           <Button variant="ghost" size="icon" class="h-9 w-9 hidden sm:inline-flex">
             <Bell class="h-4 w-4" />

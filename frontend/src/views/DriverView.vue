@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import {
   Truck, MapPin, Package, FileText, Calendar as CalendarIcon, Clock,
-  Phone, AlertCircle, CheckCircle2, Camera, Upload, Navigation, User,
+  Phone, AlertCircle, CheckCircle2, Camera, Upload, Navigation, User, Receipt,
 } from 'lucide-vue-next'
 import { toast } from '@/components/ui/sonner'
 import { Button } from '@/components/ui/button'
@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import TransportSlipDialog from '@/components/driver/TransportSlipDialog.vue'
 import {
   mockDieuDoRows,
   DRIVER_LIST,
@@ -104,6 +105,14 @@ const nextActionMap: Partial<Record<DriverStatus, { label: string; fn: (r: DieuD
   picked: { label: 'Đang giao', fn: actionStart },
   delivering: { label: 'Đã hạ', fn: actionPicked },
   delivered: { label: 'Hoàn tất', fn: actionComplete },
+}
+
+// Transport slip dialog state
+const slipOpen = ref(false)
+const slipJob = ref<DieuDoRow | null>(null)
+function openSlip(r: DieuDoRow) {
+  slipJob.value = r
+  slipOpen.value = true
 }
 </script>
 
@@ -330,6 +339,15 @@ const nextActionMap: Partial<Record<DriverStatus, { label: string; fn: (r: DieuD
                   <AlertCircle class="h-4 w-4" /> Báo sự cố
                 </Button>
               </div>
+
+              <!-- Phiếu vận chuyển — full-width prominent button -->
+              <Button
+                size="sm"
+                class="w-full mt-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white"
+                @click="openSlip(job)"
+              >
+                <Receipt class="h-4 w-4" /> Nhập phiếu vận chuyển
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -353,5 +371,7 @@ const nextActionMap: Partial<Record<DriverStatus, { label: string; fn: (r: DieuD
         </Button>
       </CardContent>
     </Card>
+
+    <TransportSlipDialog v-model:open="slipOpen" :job="slipJob" :driver-name="currentDriver" />
   </div>
 </template>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { Search, X, SlidersHorizontal } from 'lucide-vue-next'
+import { computed, ref } from 'vue'
+import { Search, X, SlidersHorizontal, RefreshCw } from 'lucide-vue-next'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
@@ -20,7 +20,20 @@ export interface DieuDoFilterState {
 }
 
 const props = defineProps<{ modelValue: DieuDoFilterState; totalCount: number; filteredCount: number }>()
-const emit = defineEmits<{ (e: 'update:modelValue', v: DieuDoFilterState): void }>()
+const emit = defineEmits<{
+  (e: 'update:modelValue', v: DieuDoFilterState): void
+  (e: 'refresh'): void
+}>()
+
+const refreshing = ref(false)
+async function onRefresh() {
+  if (refreshing.value) return
+  refreshing.value = true
+  emit('refresh')
+  // Hiệu ứng quay icon ~600ms để feedback rõ
+  await new Promise((r) => setTimeout(r, 600))
+  refreshing.value = false
+}
 
 const ALL = '__all__'
 
@@ -139,6 +152,18 @@ function reset() {
           </div>
         </PopoverContent>
       </Popover>
+
+      <Button
+        variant="outline"
+        size="sm"
+        class="h-9 gap-2"
+        :disabled="refreshing"
+        title="Làm mới dữ liệu"
+        @click="onRefresh"
+      >
+        <RefreshCw :class="['h-3.5 w-3.5 transition-transform', refreshing && 'animate-spin']" />
+        <span class="hidden sm:inline">Làm mới</span>
+      </Button>
 
       <Button v-if="chips.length > 0" variant="ghost" size="sm" class="h-9" @click="reset">
         <X class="h-3.5 w-3.5" /> Xóa lọc

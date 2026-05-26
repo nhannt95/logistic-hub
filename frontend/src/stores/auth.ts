@@ -28,7 +28,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (username !== 'demo' || password !== 'demo123') return false
     const u: AuthUser = {
       username: 'demo',
-      name: 'Khải Hoàng',
+      name: 'HoangKhang Admin',
       role: 'Giám Đốc',
     }
     user.value = u
